@@ -8,5 +8,6 @@
     "certificate": "./",
     "ca": "./"
   },
-  "loginURL": "Where to redirect users to login"
+  "loginURL": "Where to redirect users to login",
+  "redirectURI": "Must exactly match the redirect_uri used in loginURL, e.g. https://your-domain/auth/discord/callback"
 }

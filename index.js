@@ -11,6 +11,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 
 const config = require('./config.json');
+const baseURL = new URL(config.redirectURI).origin;
 const jsWords = ['null', 'undefined'];
 const ver = config.version;
 let badNames = config.badNames;
@@ -483,7 +484,7 @@ app.post('/shop/purchase', (req, res) => {
 			`${requestUser.name} purchased ${item.title} for ${item.price} Shekels.\n\nThey now have ${requestUser.Shekels} Shekels.`,
 			7855479,
 			footer,
-			['Shekels', 'https://shekels.mrsharick.com/getasset/shekels_user.png'],
+			['Shekels', `${baseURL}/getasset/shekels_user.png`],
 		);
 		logPurchase(requestUser, item, item.price);
 
@@ -588,7 +589,7 @@ app.get('/streaks/bump', async (req, res) => {
 			} Shekels.`,
 			7855479,
 			'',
-			['Shekels', 'https://shekels.mrsharick.com/getasset/shekels_user.png'],
+			['Shekels', `${baseURL}/getasset/shekels_user.png`],
 		);
 		logEvent(
 			'Streak Bumped | Previous Shekels: ' +
@@ -620,7 +621,7 @@ app.get('/streaks/bump', async (req, res) => {
 			`${newUser.name} has signed in, and an unlinked account has been created for them.\n\nThey have been given ${newUser.Shekels} Shekel.`,
 			7855479,
 			'',
-			['Shekels', 'https://shekels.mrsharick.com/getasset/shekels_user.png'],
+			['Shekels', `${baseURL}/getasset/shekels_user.png`],
 		);
 
 		res.send({
@@ -642,7 +643,7 @@ app.get('/auth/discord/callback', (req, res) => {
 				client_secret: process.env.CLIENT_SECRET,
 				grant_type: 'authorization_code',
 				code: code,
-				redirect_uri: 'https://shekels.mrsharick.com/auth/discord/callback',
+				redirect_uri: config.redirectURI,
 			},
 			{
 				headers: {
@@ -746,6 +747,8 @@ app.post('/me/logout', (req, res) => {
 			user.tokens = [];
 			logEvent('Logged out of all sessions', user);
 		} else {
+			const token =
+				req.query.discordAuth || req.body.discordAuth || req.headers.token || req.query.token || req.body.token;
 			user.tokens = user.tokens.filter((t) => t !== token);
 			logEvent('Logged out of single session', user);
 		}
@@ -900,6 +903,7 @@ app.post('/leaderboard/update_prefs', (req, res) => {
 	if (userSearchObj.user) {
 		let user = userSearchObj.user;
 
+		let inServer = false;
 		for (let i = 0; i < user.discordGuilds.length; i++) {
 			if (user.discordGuilds[i].id === '1009284359334924349') {
 				inServer = true;
@@ -1202,11 +1206,11 @@ console.log(
 httpsServer.listen(443, () => {
 	setupLog();
 	updateFile();
-	console.log(`Listening on port 443, https://shekels.mrsharick.com/`);
+	console.log(`Listening on port 443, ${baseURL}/`);
 });
 
 app.listen(port, () => {
-	console.log(`Listening on port ${port}, http://shekels.mrsharick.com/`);
+	console.log(`Listening on port ${port}, ${baseURL}/`);
 });
 
 function removeMiddle(name) {
